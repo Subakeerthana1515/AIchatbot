@@ -1,0 +1,6 @@
+body{
+    background-color: #cccccc;
+}
+.blue-filter {
+    filter: brightness(0) saturate(100%) invert(16%) sepia(100%) saturate(650%) hue-rotate(180deg) brightness(95%) contrast(90%);
+}
