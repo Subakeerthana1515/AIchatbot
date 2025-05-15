@@ -22,6 +22,7 @@ GEMINI_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.
 # In-memory session storage
 chat_sessions = {}
 document_texts = {}
+uploaded_files = {} 
 
 @app.route("/new_chat", methods=["POST"])
 def new_chat():
@@ -118,6 +119,28 @@ def delete_chat():
     if session_id in document_texts:
         del document_texts[session_id]
     return jsonify({"success": True})
+
+import os
+
+@app.route("/remove_document", methods=["POST"])
+def remove_document():
+    data = request.get_json()
+    session_id = data.get("session_id")
+
+    if session_id in document_texts:
+        document_texts[session_id] = ""
+
+        # Also remove file if stored
+        if session_id in uploaded_files:
+            filepath = uploaded_files[session_id]
+            if os.path.exists(filepath):
+                os.remove(filepath)
+            del uploaded_files[session_id]
+
+        return jsonify({"success": True, "message": "Document removed for session"})
+    else:
+        return jsonify({"success": False, "error": "Session not found"}), 400
+
 
 def save_to_db(session_id, role, message):
     import sqlite3
