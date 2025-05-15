@@ -23,12 +23,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-c65a2!yk($570)pwo1)g$v%m5m@ug0ls!$kx1&21y*pt7#cjhk'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG =True
+DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = [
+    'aichatbot-4-pmji.onrender.com',
     'localhost',
-    '127.0.0.1'
+    '127.0.0.1',
 ]
+
 
 
 # Application definition
@@ -82,11 +84,11 @@ WSGI_APPLICATION = 'myapp.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'Techjays',
-        'USER': 'root',
-        'PASSWORD': '@Kathirgk1',
-        'HOST': 'localhost',
-        'PORT': '3306',
+        'NAME': os.getenv('DB_NAME', 'Techjays'),  # default fallback if env var missing
+        'USER': os.getenv('DB_USER', 'root'),
+        'PASSWORD': os.getenv('DB_PASSWORD', ''),
+        'HOST': os.getenv('DB_HOST', 'localhost'),
+        'PORT': os.getenv('DB_PORT', '3306'),
     }
 }
 
