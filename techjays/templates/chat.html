@@ -214,14 +214,21 @@
       <button class="logout-btn" onclick="logoutChat()">Logout</button>
     </div>
 
-    <!-- Upload Section -->
     <div class="upload-section">
       <form id="upload-form" enctype="multipart/form-data">
         <input type="file" id="file-input" name="file" />
         <button type="submit">Upload Document</button>
       </form>
+      <!-- Display uploaded filename here -->
+      <div id="uploaded-file-name" style="margin-top: 5px; font-style: italic;"></div>
+    
+      <button id="remove-document-btn" onclick="removeDocument()" style="margin-top:10px; background:#ef4444; color:#fff; border:none; padding:8px 12px; border-radius:6px; cursor:pointer;">
+        Remove Document
+      </button>
       <div id="upload-status"></div>
     </div>
+    
+
 
     <!-- Chat Messages -->
     <div class="chat-container" id="chat-log"></div>
@@ -326,6 +333,7 @@
 
     function startNewChat() {
       const newSessionId = 'session_' + new Date().getTime();
+    
       fetch('http://127.0.0.1:5000/new_chat', {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -334,11 +342,81 @@
       .then(r => r.json())
       .then(data => {
         currentSession = newSessionId;
+    
+        // Clear chat window
         document.getElementById('chat-log').innerHTML = '';
+    
+        // Clear file input
+        const fileInput = document.getElementById('file-input');
+        if (fileInput) fileInput.value = '';
+    
+        // Clear upload status message
+        const status = document.getElementById('upload-status');
+        if (status) {
+          status.textContent = '';
+          status.style.color = '';
+        }
+    
+        // If you have a filename display, clear it too
+        const uploadedFileNameDisplay = document.getElementById('uploaded-file-name');
+        if (uploadedFileNameDisplay) uploadedFileNameDisplay.textContent = '';
+    
+        // Update chat history or UI as needed
         updateHistory(currentSession);
+      })
+      .catch(() => {
+        const status = document.getElementById('upload-status');
+        if (status) {
+          status.textContent = "Failed to start new chat.";
+          status.style.color = "red";
+        }
       });
     }
+    
 
+    function removeDocument() {
+      const status = document.getElementById("upload-status");
+    
+      if (!currentSession) {
+        status.textContent = "Please start a chat before removing a document.";
+        status.style.color = "red";
+        return;
+      }
+    
+      fetch("http://127.0.0.1:5000/remove_document", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ session_id: currentSession })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          status.textContent = "Document removed successfully!";
+          status.style.color = "green";
+    
+          // Clear the file input
+          document.getElementById("file-input").value = "";
+    
+          // Reset current session or any related variable
+          currentSession = null; // reset session as document is removed
+    
+          // Clear any displayed uploaded filename (if exists)
+          const uploadedFileNameDisplay = document.getElementById("uploaded-file-name");
+          if (uploadedFileNameDisplay) {
+            uploadedFileNameDisplay.textContent = "";
+          }
+        } else {
+          status.textContent = "Failed to remove document: " + data.error;
+          status.style.color = "red";
+        }
+      })
+      .catch(() => {
+        status.textContent = "Error removing document.";
+        status.style.color = "red";
+      });
+    }
+    
+    
     function logoutChat() {
       currentSession = null;
       document.getElementById('chat-log').innerHTML = '';
