@@ -1,4 +1,5 @@
 {% load static %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -12,11 +13,11 @@
     <header class="p-3 bg-dark text-white">
         <div class="row">
             <div class="col">
-                <a class="text-decoration-none text-light" href="{% url 'welcome' %}"><h3>Techjays</h3></a>
+                <!-- Use app namespace 'techjays' before 'welcome' -->
+                <a class="text-decoration-none text-light" href="{% url 'techjays:welcome' %}"><h3>Techjays</h3></a>
             </div>
             <div class="col">
                 <div class="d-flex justify-content-center gap-3">
-                    
                     <a class="text-light text-decoration-none" href="#">About</a>
                     <a class="text-light text-decoration-none" href="#">Contact</a>
                 </div>
@@ -29,14 +30,12 @@
             <div class="col-md-6">
                 <h3>Register</h3>
 
-                <!-- Success message -->
                 {% if success_message %}
                     <div class="alert alert-success">
                         {{ success_message }}
                     </div>
                 {% endif %}
 
-                <!-- Form Start -->
                 <form method="post" novalidate>
                     {% csrf_token %}
 
@@ -62,7 +61,6 @@
                         <button type="submit" class="btn btn-primary">Register</button>
                     </div>
                 </form>
-                <!-- Form End -->
 
             </div>
         </div>

@@ -3,8 +3,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>TechJays AI Chat | Intelligent Conversational Platform</title>
     <style>
         :root {
@@ -160,10 +160,7 @@
 <body>
     <header>
         <div class="container">
-            <!-- Replace with actual TechJays logo -->
-            {% load static %}
- <img src="{% static 'techjays/images/techjays_logo.png' %}" alt="TechJays Logo" class="logo">
-
+            <img src="{% static 'techjays/images/techjays_logo.png' %}" alt="TechJays Logo" class="logo" />
             <h1>TechJays AI Chat Platform</h1>
             <p class="tagline">Empowering conversations with cutting-edge artificial intelligence</p>
         </div>
@@ -173,11 +170,14 @@
         <div class="container">
             <div class="cta-section">
                 <h2>Experience Intelligent Chat</h2>
-                <p>Join our AI-powered conversational platform to explore the future of human-computer interaction. Register now to get started or login to continue your journey.</p>
+                <p>
+                    Join our AI-powered conversational platform to explore the future of human-computer interaction.
+                    Register now to get started or login to continue your journey.
+                </p>
                 
                 <div class="cta-buttons">
-                    <a href="{% url 'register' %}" class="btn btn-primary">Register Now</a>
-                    <a href="{% url 'login' %}" class="btn btn-outline">Login</a>
+                    <a href="{% url 'techjays:register' %}" class="btn btn-primary">Register Now</a>
+                    <a href="{% url 'techjays:login' %}" class="btn btn-outline">Login</a>
                 </div>
             </div>
             

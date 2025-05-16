@@ -1,18 +1,23 @@
-from django.conf import settings
-from django.conf.urls.static import static
 from django.urls import path
-from . import views
+from . import auth_views, chat_views
+from techjays.chat_views import get_history
+
+app_name = 'techjays'
 
 urlpatterns = [
-    path('', views.welcome, name='welcome'),                     # Welcome page
-    path('register/', views.register, name='register'),          # Signup page
-    path('login_view/', views.login_view, name='login'),         # Login page
-    path('logout_view/', views.logout_view, name='logout'),      # Logout functionality
-    path('chatbot/', views.chatbot_view, name='chatbot'),        # Chatbot main page
-   
-    
-]
+    path('', auth_views.welcome, name='welcome'),
+    path('welcome/', auth_views.welcome, name='welcome'),
+    path('register/', auth_views.register, name='register'),
+    path('login_view/', auth_views.login_view, name='login'),
+    path('logout_view/', auth_views.logout_view, name='logout'),
 
-# Serve media files during development
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    # Chatbot only accessible after login
+     path('chatbot/', chat_views.chatbot_view, name='chatbot'),
+    path('chatbot/new_chat/', chat_views.new_chat, name='new_chat'),
+    path('chatbot/chat/', chat_views.chat, name='chat'),
+    path('chatbot/upload/', chat_views.upload_file, name='upload_file'),
+    path('chatbot/get_history/<str:session_id>/', get_history),
+    path('chatbot/delete/', chat_views.delete_chat, name='delete_chat'),
+    path('chatbot/remove_document/', chat_views.remove_document, name='remove_document'),
+    path('chatbot/gemini/', chat_views.call_gemini_flash_api, name='call_gemini'),
+]
