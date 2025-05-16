@@ -216,7 +216,6 @@
         Remove Document
       </button>
       <div id="upload-status"></div>
-      
     </div>
 
     <div class="chat-container" id="chat-log"></div>
@@ -228,23 +227,112 @@
       </div>
     </div>
   </div>
-
+ 
   <script>
     let currentSession = null;
+    let sessionList = [];
+
+    window.onload = async () => {
+      await loadChatList();
+      currentSession = localStorage.getItem("currentSession");
+
+      if (currentSession) {
+        loadChatMessages();
+      } else {
+        console.log("No active session found. Please start a new chat.");
+      }
+    };
+
+    async function loadChatList() {
+      const res = await fetch("/techjays/chatbot/get_sessions/");
+      const data = await res.json();
+      sessionList = data.sessions;
+
+      const chatList = document.getElementById("chat-history-list");
+      chatList.innerHTML = "";
+
+      sessionList.forEach(session => {
+        const li = document.createElement("li");
+        li.innerText = session.name || `Chat ${session.session_id}`;
+        if (session.session_id === currentSession) {
+          li.classList.add("active");
+        }
+
+        const deleteBtn = document.createElement("button");
+        deleteBtn.innerHTML = "&#10005;";
+        deleteBtn.className = "delete-btn";
+        deleteBtn.onclick = (e) => {
+          e.stopPropagation();
+          deleteChat(session.session_id);
+        };
+
+        li.appendChild(deleteBtn);
+
+        li.onclick = () => {
+          currentSession = session.session_id;
+          localStorage.setItem("currentSession", currentSession);
+
+          document.querySelectorAll("#chat-history-list li").forEach(el => el.classList.remove("active"));
+          li.classList.add("active");
+
+          loadChatMessages();
+        };
+
+        chatList.appendChild(li);
+      });
+    }
+
+    async function deleteChat(sessionId) {
+      const confirmDelete = confirm("Are you sure you want to delete this chat?");
+      if (!confirmDelete) return;  // if user cancels, do nothing
+    
+      const res = await fetch("/techjays/chatbot/delete/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ session_id: sessionId })
+      });
+    
+      if (res.ok) {
+        if (sessionId === currentSession) {
+          localStorage.removeItem("currentSession");
+          currentSession = null;
+          document.getElementById("chat-log").innerHTML = "";
+        }
+        await loadChatList();
+      } else {
+        alert("Failed to delete chat.");
+      }
+    }
+    
+
     async function startNewChat() {
       const res = await fetch("/techjays/chatbot/new_chat/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({})  // or omit body entirely, but server expects POST
+        body: JSON.stringify({})
       });
-    
+
       const data = await res.json();
-      currentSession = data.session_id;  // <- Use the returned session_id here
-    
+      currentSession = data.session_id;
+      localStorage.setItem("currentSession", currentSession);
+
+      await loadChatList();
       document.getElementById("chat-log").innerHTML = "";
-      loadChatHistory();
+      loadChatMessages();
     }
-    
+
+    async function loadChatMessages() {
+      const res = await fetch(`/techjays/chatbot/get_history/${currentSession}/`);
+      const data = await res.json();
+      const chatLog = document.getElementById("chat-log");
+      chatLog.innerHTML = "";
+
+      data.messages.forEach(msg => {
+        addMessageToChat(msg.sender, msg.content);
+      });
+
+      chatLog.scrollTop = chatLog.scrollHeight;
+    }
 
     async function sendMessage() {
       const input = document.getElementById("user-input");
@@ -259,6 +347,7 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ session_id: currentSession, message })
       });
+
       const data = await res.json();
       addMessageToChat("bot", data.response);
     }
@@ -278,99 +367,88 @@
 
     const uploadForm = document.getElementById('upload-form');
 
-    uploadForm.addEventListener('submit', async function(e) {
-      e.preventDefault();  // Prevent page reload
-  
-      const fileInput = document.getElementById("upload-file-input");
-      const file = fileInput.files[0];
-  
-      if (!file) {
-        document.getElementById("upload-status").innerText = "Please select a file first.";
-        return;
-      }
-  
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("session_id", currentSession);
-  
-      try {
-        const res = await fetch("/techjays/chatbot/upload/", {
-          method: "POST",
-          body: formData,
-        });
-  
-        if (res.ok) {
-          const data = await res.json();
-          if (data.success) {
-            document.getElementById("upload-status").innerText = "Upload successful.";
-            document.getElementById("uploaded-file-name").innerText = file.name;
-          } else {
-            document.getElementById("upload-status").innerText = "Upload failed.";
-          }
-        } else {
-          document.getElementById("upload-status").innerText = "Upload failed.";
-        }
-      } catch (err) {
-        document.getElementById("upload-status").innerText = "Upload error.";
-        console.error(err);
-      }
+uploadForm.addEventListener('submit', async function(e) {
+  e.preventDefault();
+
+  const fileInput = document.getElementById("upload-file-input");
+  const file = fileInput.files[0];
+
+  if (!file) {
+    document.getElementById("upload-status").innerText = "Please select a file first.";
+    return;
+  }
+
+  if (!currentSession) {
+    document.getElementById("upload-status").innerText = "No active session selected.";
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("session_id", currentSession);
+
+  try {
+    console.log("Uploading file:", file.name, "for session:", currentSession);
+    const res = await fetch("/techjays/chatbot/upload/", {
+      method: "POST",
+      body: formData,
     });
-    
+
+    if (!res.ok) {
+      // Try to parse error response if JSON
+      let errorMsg = "Upload failed.";
+      try {
+        const errData = await res.json();
+        errorMsg = errData.error || errorMsg;
+      } catch {}
+
+      document.getElementById("upload-status").innerText = errorMsg;
+      console.error("Upload failed with status:", res.status);
+      return;
+    }
+
+    const data = await res.json();
+
+    if (data.success) {
+      document.getElementById("upload-status").innerText = "Upload successful.";
+      document.getElementById("uploaded-file-name").innerText = file.name;
+    } else {
+      document.getElementById("upload-status").innerText = data.error || "Upload failed.";
+    }
+  } catch (err) {
+    document.getElementById("upload-status").innerText = "Upload error.";
+    console.error("Fetch error:", err);
+  }
+});
+
     async function removeDocument() {
       const res = await fetch("/techjays/chatbot/remove_document/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ session_id: currentSession })
       });
-    
+
       if (res.ok) {
-        // Clear displayed file name
         document.getElementById("uploaded-file-name").innerText = "";
-        // Reset file input so user can upload again
         document.getElementById("upload-file-input").value = "";
-        // Show removal message
         document.getElementById("upload-status").innerText = "Document removed.";
       } else {
         document.getElementById("upload-status").innerText = "Failed to remove document.";
       }
     }
-    
-
-    async function loadChatHistory() {
-      const res = await fetch(`/techjays/chatbot/get_history/${currentSession}/`);
-      const data = await res.json();
-
-      const list = document.getElementById("chat-history-list");
-      list.innerHTML = "";
-      data.sessions.forEach(session => {
-        const li = document.createElement("li");
-        li.innerText = session.name;
-        li.onclick = () => {
-          currentSession = session.session_id;
-          document.querySelectorAll("#chat-history-list li").forEach(el => el.classList.remove("active"));
-          li.classList.add("active");
-          loadChatMessages();
-        };
-        list.appendChild(li);
-      });
-    }
-
-    async function loadChatMessages() {
-      const res = await fetch(`/techjays/chatbot/get_history/${currentSession}/`);
-      const data = await res.json();
-
-      const log = document.getElementById("chat-log");
-      log.innerHTML = "";
-      data.messages.forEach(m => addMessageToChat(m.sender, m.text));
-    }
 
     function logoutChat() {
+      localStorage.removeItem("currentSession");
       window.location.href = "/techjays/logout_view/";
     }
+    document.querySelectorAll('.logout-btn').forEach(button => {
+      button.addEventListener('click', function(event) {
+        if (!confirm('Are you sure you want to logout?')) {
+          event.preventDefault();  // Cancel logout if user clicks "Cancel"
+        }
+      });
+    });
 
-    window.onload = () => {
-      startNewChat();
-    };
   </script>
 </body>
 </html>

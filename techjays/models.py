@@ -3,9 +3,11 @@ from django.contrib.auth.models import User
 
 class ChatHistory(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    session_id = models.CharField(max_length=100, unique=True)
-    name = models.CharField(max_length=200, default="New Chat")
+    session_id = models.CharField(max_length=255, unique=True)
+    name = models.CharField(max_length=100, default="Chat")  # <-- ADD THIS
+    document_text = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
 
     def __str__(self):
         return f"{self.name} ({self.session_id})"
@@ -13,7 +15,7 @@ class ChatHistory(models.Model):
 
 class ChatMessage(models.Model):
     chat_history = models.ForeignKey(ChatHistory, on_delete=models.CASCADE, related_name='messages')
-    sender = models.CharField(max_length=10)  # 'user' or 'bot'
+    sender = models.CharField(max_length=10, default='user')  # 'user' or 'bot', default set to 'user'
     text = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)
 
@@ -21,11 +23,15 @@ class ChatMessage(models.Model):
         return f"{self.sender}: {self.text[:50]}"
 
 
+ 
+
+
 class UploadedFile(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    chat_history = models.OneToOneField(ChatHistory, on_delete=models.CASCADE)
+    chat_history = models.OneToOneField(ChatHistory, on_delete=models.CASCADE, null=True, blank=True)
     file = models.FileField(upload_to='uploaded_files/')
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"File for {self.chat_history.session_id}"
+        return f"File for {self.chat_history.session_id if self.chat_history else 'No Chat History'}"
+
