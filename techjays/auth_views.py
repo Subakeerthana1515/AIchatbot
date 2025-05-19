@@ -6,8 +6,16 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt
-from .forms import RegisterForm
+from .forms import ForgotPasswordForm, RegisterForm
 from .models import UploadedFile, ChatHistory, ChatMessage  # your models
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
+from django.contrib.sites.shortcuts import get_current_site 
+from django.template.loader import render_to_string
+from django.core.mail import send_mail
+from django.contrib import messages
+
 
 def welcome(request):
     return render(request, 'welcome.html')
@@ -50,3 +58,29 @@ def logout_view(request):
     # Redirect to login page after logout, include namespace if needed
     return redirect('techjays:login')
 
+def forget_password(request):
+  form = ForgotPasswordForm()
+  if request.method == 'POST':
+        #form 
+   form = ForgotPasswordForm(request.POST)
+   if form.is_valid():
+            email = form.cleaned_data['email']
+            user = User.objects.get(email=email)
+            #send email to reset password
+            token = default_token_generator.make_token(user)
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            current_site = get_current_site(request)
+            domain = current_site.domain
+            subject = "Reset Password Requested"
+            message = render_to_string('techjays/reset_password_email.html', {
+                'domain': domain,
+                'uid': uid,
+                'token': token
+            })
+
+            send_mail(subject, message, 'noreply@techjays.com', [email])
+            messages.success(request, 'Email has been sent')
+  return render(request,'techjays/forget_password.html',{'form': form})
+
+def reset_password(request):
+    pass

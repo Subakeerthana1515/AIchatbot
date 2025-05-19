@@ -10,7 +10,14 @@ urlpatterns = [
     path('register/', auth_views.register, name='register'),
     path('login_view/', auth_views.login_view, name='login'),
     path('logout_view/', auth_views.logout_view, name='logout'),
+    path('forget_password/', auth_views.forget_password, name='forget_password'),
+    path('reset/<uidb64>/<token>/', auth_views.reset_password, name='reset_password'),
 
+    
+    
+    
+    
+    
     # Chatbot only accessible after login
     path('chatbot/', chat_views.chatbot_view, name='chatbot'),
     path('chatbot/new_chat/', chat_views.new_chat, name='new_chat'),
@@ -21,4 +28,5 @@ urlpatterns = [
     path('chatbot/delete/', chat_views.delete_chat, name='delete_chat'),
     path('chatbot/remove_document/', chat_views.remove_document, name='remove_document'),
     path('chatbot/gemini/', chat_views.call_gemini_flash_api, name='call_gemini'),
+    
 ]

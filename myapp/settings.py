@@ -91,3 +91,17 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_URL = '/techjays/login_view/'
+
+
+
+# Email backend for testing
+
+DEFAULT_FROM_EMAIL = 'your_email@techjays.com'
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'sandbox.smtp.mailtrap.io'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'b89f4e450c8892'
+EMAIL_HOST_PASSWORD = 'c5bca38df36b42'
+EMAIL_USE_TLS = True
+
