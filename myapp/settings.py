@@ -11,16 +11,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 env_path = os.path.join(BASE_DIR, 'techjays', 'chatbot', '.env')
 load_dotenv(dotenv_path=env_path)
 
-# 3. Debug: Print values to confirm loading
-print("ENV PATH:", env_path)
-print("DATABASE_URL =", os.getenv("DATABASE_URL"))
+
+SECRET_KEY = os.getenv('SECRET_KEY')
+
+DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
 
-SECRET_KEY = 'django-insecure-c65a2!yk($570)pwo1)g$v%m5m@ug0ls!$kx1&21y*pt7#cjhk'
+ALLOWED_HOSTS = ['aichatbot-dm9v.onrender.com', 'localhost', '127.0.0.1']
 
-DEBUG = True
-
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -36,6 +34,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'corsheaders.middleware.CorsMiddleware',  # Place corsheaders early
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -109,3 +108,5 @@ EMAIL_HOST_PASSWORD = 'c5bca38df36b42'
 EMAIL_USE_TLS = True
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
