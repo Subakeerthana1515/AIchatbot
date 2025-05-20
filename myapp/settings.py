@@ -11,10 +11,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 env_path = os.path.join(BASE_DIR, 'techjays', 'chatbot', '.env')
 load_dotenv(dotenv_path=env_path)
 
-
 SECRET_KEY = os.getenv('SECRET_KEY')
-
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
+
 
 
 ALLOWED_HOSTS = ['aichatbot-dm9v.onrender.com', 'localhost', '127.0.0.1']
