@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <title>TechJays AI</title>
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'techjays/style.css' %}">
   <style>
     body {
       font-family: 'Segoe UI', Arial, sans-serif;
@@ -13,7 +15,6 @@
       background: #f5f7fa;
     }
 
-    /* Sidebar */
     #sidebar {
       width: 280px;
       background: #ffffff;
@@ -37,7 +38,6 @@
       border-radius: 8px;
       font-weight: 500;
       cursor: pointer;
-      transition: background 0.2s;
     }
 
     .new-chat-btn:hover {
@@ -59,7 +59,6 @@
       justify-content: space-between;
       align-items: center;
       font-size: 14px;
-      transition: background 0.2s;
     }
 
     #chat-history-list li:hover {
@@ -83,7 +82,6 @@
       color: #ef4444;
     }
 
-    /* Main Chat */
     .app-container {
       flex: 1;
       display: flex;
@@ -130,7 +128,6 @@
       border-radius: 12px;
       line-height: 1.5;
       font-size: 15px;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
     }
 
     .user-content {
@@ -165,7 +162,6 @@
       border-radius: 8px;
       resize: none;
       font-family: inherit;
-      max-height: 150px;
     }
 
     #send-button {
@@ -175,8 +171,6 @@
       border: none;
       border-radius: 8px;
       cursor: pointer;
-      font-weight: 500;
-      transition: background 0.2s;
     }
 
     #send-button:hover {
@@ -199,7 +193,6 @@
   </style>
 </head>
 <body>
-  <!-- Sidebar -->
   <div id="sidebar">
     <div class="sidebar-header">
       <button class="new-chat-btn" onclick="startNewChat()">+ New Chat</button>
@@ -207,7 +200,6 @@
     <ul id="chat-history-list"></ul>
   </div>
 
-  <!-- Main Chat Area -->
   <div class="app-container">
     <div class="header">
       <div class="logo">TechJays AI</div>
@@ -216,24 +208,18 @@
 
     <div class="upload-section">
       <form id="upload-form" enctype="multipart/form-data">
-        <input type="file" id="file-input" name="file" />
+        <input type="file" id="upload-file-input" name="file" />
         <button type="submit">Upload Document</button>
       </form>
-      <!-- Display uploaded filename here -->
       <div id="uploaded-file-name" style="margin-top: 5px; font-style: italic;"></div>
-    
       <button id="remove-document-btn" onclick="removeDocument()" style="margin-top:10px; background:#ef4444; color:#fff; border:none; padding:8px 12px; border-radius:6px; cursor:pointer;">
         Remove Document
       </button>
       <div id="upload-status"></div>
     </div>
-    
 
-
-    <!-- Chat Messages -->
     <div class="chat-container" id="chat-log"></div>
 
-    <!-- Chat Input -->
     <div class="input-area">
       <div class="input-container">
         <textarea id="user-input" placeholder="Type your message..." rows="1"></textarea>
@@ -241,237 +227,228 @@
       </div>
     </div>
   </div>
-
+ 
   <script>
     let currentSession = null;
-    let sessions = [];
+    let sessionList = [];
 
-    function renderMessage(role, text) {
-      const chatLog = document.getElementById('chat-log');
-      const user = role === 'user';
-      chatLog.innerHTML += `
-        <div class="message ${user ? 'user-message' : 'bot-message'}">
-          <div class="message-content ${user ? 'user-content' : 'bot-content'}">${text}</div>
-        </div>
-      `;
-      chatLog.scrollTop = chatLog.scrollHeight;
-    }
+    window.onload = async () => {
+      await loadChatList();
+      currentSession = localStorage.getItem("currentSession");
 
-    function sendMessage() {
-      const input = document.getElementById('user-input');
-      const message = input.value.trim();
-      if (!message || !currentSession) return;
+      if (currentSession) {
+        loadChatMessages();
+      } else {
+        console.log("No active session found. Please start a new chat.");
+      }
+    };
 
-      renderMessage('user', message);
-      input.value = '';
-      document.getElementById("send-button").disabled = true;
+    async function loadChatList() {
+      const res = await fetch("/techjays/chatbot/get_sessions/");
+      const data = await res.json();
+      sessionList = data.sessions;
 
-      fetch("http://127.0.0.1:5000/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: message, session_id: currentSession })
-      })
-      .then(r => r.json())
-      .then(data => {
-        if (data.success) {
-          renderMessage('model', data.response);
+      const chatList = document.getElementById("chat-history-list");
+      chatList.innerHTML = "";
+
+      sessionList.forEach(session => {
+        const li = document.createElement("li");
+        li.innerText = session.name || `Chat ${session.session_id}`;
+        if (session.session_id === currentSession) {
+          li.classList.add("active");
         }
-      })
-      .catch(err => {
-        renderMessage('model', "Error getting response.");
-        console.error(err);
-      })
-      .finally(() => {
-        document.getElementById("send-button").disabled = false;
-      });
-    }
 
-    function updateHistory(sessionId) {
-      if (!sessions.includes(sessionId)) {
-        sessions.push(sessionId);
-        const li = document.createElement('li');
-        li.textContent = `Chat ${sessions.length}`;
-        if (sessionId === currentSession) li.classList.add('active');
-
-        const deleteButton = document.createElement('button');
-        deleteButton.className = 'delete-btn';
-        deleteButton.innerHTML = '×';
-        deleteButton.onclick = (e) => {
+        const deleteBtn = document.createElement("button");
+        deleteBtn.innerHTML = "&#10005;";
+        deleteBtn.className = "delete-btn";
+        deleteBtn.onclick = (e) => {
           e.stopPropagation();
-          confirmDelete(sessionId);
+          deleteChat(session.session_id);
         };
 
-        li.onclick = () => loadChat(sessionId);
-        li.appendChild(deleteButton);
-        document.getElementById('chat-history-list').appendChild(li);
-      }
-    }
+        li.appendChild(deleteBtn);
 
-    function confirmDelete(sessionId) {
-      if (confirm("Are you sure you want to delete this chat?")) {
-        deleteChat(sessionId);
-      }
-    }
+        li.onclick = () => {
+          currentSession = session.session_id;
+          localStorage.setItem("currentSession", currentSession);
 
-    function loadChat(sessionId) {
-      currentSession = sessionId;
-      document.getElementById('chat-log').innerHTML = '';
-      document.querySelectorAll('#chat-history-list li').forEach(li => li.classList.remove('active'));
+          document.querySelectorAll("#chat-history-list li").forEach(el => el.classList.remove("active"));
+          li.classList.add("active");
 
-      document.querySelectorAll('#chat-history-list li').forEach(li => {
-        if (li.textContent.includes(`Chat ${sessions.indexOf(sessionId)+1}`)) {
-          li.classList.add('active');
-        }
-      });
+          loadChatMessages();
+        };
 
-      fetch(`http://127.0.0.1:5000/get_history/${sessionId}`)
-        .then(response => response.json())
-        .then(data => {
-          data.forEach(entry => renderMessage(entry.role, entry.text));
-        });
-    }
-
-    function startNewChat() {
-      const newSessionId = 'session_' + new Date().getTime();
-    
-      fetch('http://127.0.0.1:5000/new_chat', {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ session_id: newSessionId })
-      })
-      .then(r => r.json())
-      .then(data => {
-        currentSession = newSessionId;
-    
-        // Clear chat window
-        document.getElementById('chat-log').innerHTML = '';
-    
-        // Clear file input
-        const fileInput = document.getElementById('file-input');
-        if (fileInput) fileInput.value = '';
-    
-        // Clear upload status message
-        const status = document.getElementById('upload-status');
-        if (status) {
-          status.textContent = '';
-          status.style.color = '';
-        }
-    
-        // If you have a filename display, clear it too
-        const uploadedFileNameDisplay = document.getElementById('uploaded-file-name');
-        if (uploadedFileNameDisplay) uploadedFileNameDisplay.textContent = '';
-    
-        // Update chat history or UI as needed
-        updateHistory(currentSession);
-      })
-      .catch(() => {
-        const status = document.getElementById('upload-status');
-        if (status) {
-          status.textContent = "Failed to start new chat.";
-          status.style.color = "red";
-        }
+        chatList.appendChild(li);
       });
     }
-    
 
-    function removeDocument() {
-      const status = document.getElementById("upload-status");
+    async function deleteChat(sessionId) {
+      const confirmDelete = confirm("Are you sure you want to delete this chat?");
+      if (!confirmDelete) return;  // if user cancels, do nothing
     
-      if (!currentSession) {
-        status.textContent = "Please start a chat before removing a document.";
-        status.style.color = "red";
-        return;
-      }
-    
-      fetch("http://127.0.0.1:5000/remove_document", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ session_id: currentSession })
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          status.textContent = "Document removed successfully!";
-          status.style.color = "green";
-    
-          // Clear the file input
-          document.getElementById("file-input").value = "";
-    
-          // Reset current session or any related variable
-          currentSession = null; // reset session as document is removed
-    
-          // Clear any displayed uploaded filename (if exists)
-          const uploadedFileNameDisplay = document.getElementById("uploaded-file-name");
-          if (uploadedFileNameDisplay) {
-            uploadedFileNameDisplay.textContent = "";
-          }
-        } else {
-          status.textContent = "Failed to remove document: " + data.error;
-          status.style.color = "red";
-        }
-      })
-      .catch(() => {
-        status.textContent = "Error removing document.";
-        status.style.color = "red";
-      });
-    }
-    
-    
-    function logoutChat() {
-      currentSession = null;
-      document.getElementById('chat-log').innerHTML = '';
-      alert("You have been logged out.");
-      window.location.href = "/techjays/logout_view/";
-    }
-
-    function deleteChat(sessionId) {
-      fetch("http://127.0.0.1:5000/delete_chat", {
+      const res = await fetch("/techjays/chatbot/delete/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ session_id: sessionId })
-      })
-      .then(() => {
-        sessions = sessions.filter(s => s !== sessionId);
-        const list = document.getElementById('chat-history-list');
-        list.innerHTML = '';
-        sessions.forEach(s => updateHistory(s));
       });
+    
+      if (res.ok) {
+        if (sessionId === currentSession) {
+          localStorage.removeItem("currentSession");
+          currentSession = null;
+          document.getElementById("chat-log").innerHTML = "";
+        }
+        await loadChatList();
+      } else {
+        alert("Failed to delete chat.");
+      }
+    }
+    
+
+    async function startNewChat() {
+      const res = await fetch("/techjays/chatbot/new_chat/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({})
+      });
+
+      const data = await res.json();
+      currentSession = data.session_id;
+      localStorage.setItem("currentSession", currentSession);
+
+      await loadChatList();
+      document.getElementById("chat-log").innerHTML = "";
+      loadChatMessages();
     }
 
-    document.getElementById("upload-form").addEventListener("submit", function (e) {
-      e.preventDefault();
-      const status = document.getElementById("upload-status");
+    async function loadChatMessages() {
+      const res = await fetch(`/techjays/chatbot/get_history/${currentSession}/`);
+      const data = await res.json();
+      const chatLog = document.getElementById("chat-log");
+      chatLog.innerHTML = "";
 
-      if (!currentSession) {
-        status.textContent = "Please start a chat before uploading.";
-        status.style.color = "red";
-        return;
-      }
+      data.messages.forEach(msg => {
+        addMessageToChat(msg.sender, msg.content);
+      });
 
-      const fileInput = document.getElementById("file-input");
-      const formData = new FormData();
-      formData.append("file", fileInput.files[0]);
-      formData.append("session_id", currentSession);
+      chatLog.scrollTop = chatLog.scrollHeight;
+    }
 
-      fetch("http://127.0.0.1:5000/upload", {
+    async function sendMessage() {
+      const input = document.getElementById("user-input");
+      const message = input.value.trim();
+      if (!message) return;
+
+      addMessageToChat("user", message);
+      input.value = "";
+
+      const res = await fetch("/techjays/chatbot/chat/", {
         method: "POST",
-        body: formData
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          status.textContent = "Upload successful!";
-          status.style.color = "green";
-        } else {
-          status.textContent = "Upload failed: " + data.error;
-          status.style.color = "red";
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ session_id: currentSession, message })
+      });
+
+      const data = await res.json();
+      addMessageToChat("bot", data.response);
+    }
+
+    function addMessageToChat(sender, content) {
+      const msgDiv = document.createElement("div");
+      msgDiv.className = `message ${sender}-message`;
+
+      const bubble = document.createElement("div");
+      bubble.className = `message-content ${sender === "user" ? "user-content" : "bot-content"}`;
+      bubble.innerText = content;
+
+      msgDiv.appendChild(bubble);
+      document.getElementById("chat-log").appendChild(msgDiv);
+      document.getElementById("chat-log").scrollTop = document.getElementById("chat-log").scrollHeight;
+    }
+
+    const uploadForm = document.getElementById('upload-form');
+
+uploadForm.addEventListener('submit', async function(e) {
+  e.preventDefault();
+
+  const fileInput = document.getElementById("upload-file-input");
+  const file = fileInput.files[0];
+
+  if (!file) {
+    document.getElementById("upload-status").innerText = "Please select a file first.";
+    return;
+  }
+
+  if (!currentSession) {
+    document.getElementById("upload-status").innerText = "No active session selected.";
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("session_id", currentSession);
+
+  try {
+    console.log("Uploading file:", file.name, "for session:", currentSession);
+    const res = await fetch("/techjays/chatbot/upload/", {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!res.ok) {
+      // Try to parse error response if JSON
+      let errorMsg = "Upload failed.";
+      try {
+        const errData = await res.json();
+        errorMsg = errData.error || errorMsg;
+      } catch {}
+
+      document.getElementById("upload-status").innerText = errorMsg;
+      console.error("Upload failed with status:", res.status);
+      return;
+    }
+
+    const data = await res.json();
+
+    if (data.success) {
+      document.getElementById("upload-status").innerText = "Upload successful.";
+      document.getElementById("uploaded-file-name").innerText = file.name;
+    } else {
+      document.getElementById("upload-status").innerText = data.error || "Upload failed.";
+    }
+  } catch (err) {
+    document.getElementById("upload-status").innerText = "Upload error.";
+    console.error("Fetch error:", err);
+  }
+});
+
+    async function removeDocument() {
+      const res = await fetch("/techjays/chatbot/remove_document/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ session_id: currentSession })
+      });
+
+      if (res.ok) {
+        document.getElementById("uploaded-file-name").innerText = "";
+        document.getElementById("upload-file-input").value = "";
+        document.getElementById("upload-status").innerText = "Document removed.";
+      } else {
+        document.getElementById("upload-status").innerText = "Failed to remove document.";
+      }
+    }
+
+    function logoutChat() {
+      localStorage.removeItem("currentSession");
+      window.location.href = "/techjays/logout_view/";
+    }
+    document.querySelectorAll('.logout-btn').forEach(button => {
+      button.addEventListener('click', function(event) {
+        if (!confirm('Are you sure you want to logout?')) {
+          event.preventDefault();  // Cancel logout if user clicks "Cancel"
         }
-      })
-      .catch(() => {
-        status.textContent = "Upload failed.";
-        status.style.color = "red";
       });
     });
+
   </script>
 </body>
 </html>
