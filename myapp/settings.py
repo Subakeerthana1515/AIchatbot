@@ -50,7 +50,7 @@ ROOT_URLCONF = 'myapp.urls'  # Make sure your root urls.py is here
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],  # global templates folder
+        'DIRS': [BASE_DIR / 'techjays' / 'templates'],  # global templates folder
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
