@@ -11,10 +11,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 env_path = os.path.join(BASE_DIR, 'techjays', 'chatbot', '.env')
 load_dotenv(dotenv_path=env_path)
 
-# 3. Debug: Print values to confirm loading
-print("ENV PATH:", env_path)
-print("DATABASE_URL =", os.getenv("DATABASE_URL"))
-
 
 SECRET_KEY = 'django-insecure-c65a2!yk($570)pwo1)g$v%m5m@ug0ls!$kx1&21y*pt7#cjhk'
 
