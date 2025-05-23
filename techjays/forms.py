@@ -2,41 +2,65 @@ from django import forms
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 import re
-from .models import UploadedFile
+from .models import UploadedFile 
 
-class RegisterForm(forms.Form):
-    full_name = forms.CharField(max_length=100)
-    email = forms.EmailField()
-    password1 = forms.CharField(widget=forms.PasswordInput)
-    password2 = forms.CharField(widget=forms.PasswordInput)
 
-    def clean_password1(self):
-        password = self.cleaned_data.get('password1')
-        # Your custom validation rules:
-        if len(password) < 8:
-            raise ValidationError("Password must be at least 8 characters long.")
-        if not re.search(r'[A-Z]', password):
-            raise ValidationError("Password must contain at least one uppercase letter.")
-        if not re.search(r'\d', password):
-            raise ValidationError("Password must contain at least one digit.")
-        if not re.search(r'[^\w\s]', password):  # special character check
-            raise ValidationError("Password must contain at least one special character.")
-        return password
+class RegisterForm(forms.ModelForm):
+    username = forms.CharField(
+        label='Username',
+        max_length=100,
+        required=True,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter your username'})
+    )
+
+    email = forms.EmailField(
+        label='Email',
+        required=True,
+        widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Enter your email'})
+    )
+
+    password = forms.CharField(
+        label='Password',
+        required=True,
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Enter your password'})
+    )
+
+    password_confirm = forms.CharField(
+        label='Confirm Password',
+        required=True,
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Confirm your password'})
+    )
+
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'password']
+
+    def clean_username(self):
+        username = self.cleaned_data['username']
+        if User.objects.filter(username=username).exists():
+            raise ValidationError("Username already exists.")
+        if not re.match("^[A-Za-z0-9_]+$", username):
+            raise ValidationError("Username can only contain letters, numbers, and underscores.")
+        return username
+
+    def clean_email(self):
+        email = self.cleaned_data['email']
+        if User.objects.filter(email=email).exists():
+            raise ValidationError("Email already in use.")
+        return email
 
     def clean(self):
         cleaned_data = super().clean()
-        password1 = cleaned_data.get('password1')
-        password2 = cleaned_data.get('password2')
+        password = cleaned_data.get("password")
+        password_confirm = cleaned_data.get("password_confirm")
 
-        if password1 and password2 and password1 != password2:
-            raise ValidationError("Passwords do not match.")
-
+        if password and password_confirm and password != password_confirm:
+            self.add_error('password_confirm', "Passwords do not match.")
 
 class FileUploadForm(forms.ModelForm):
     class Meta:
         model = UploadedFile
         fields = ['file']
-
 
 class ForgotPasswordForm(forms.Form):
     email = forms.EmailField(label='Email', max_length=254, required=True)
@@ -47,45 +71,16 @@ class ForgotPasswordForm(forms.Form):
 
         if not User.objects.filter(email=email).exists():
             raise forms.ValidationError("No User Registered with this email.")
-
-def validate_password_strength(password):
-    """
-    Validates that the password meets the criteria:
-    - at least 8 characters
-    - at least one uppercase letter
-    - at least one digit
-    - at least one special character
-    """
-    if len(password) < 8:
-        raise ValidationError("Password must be at least 8 characters long.")
-    if not re.search(r'[A-Z]', password):
-        raise ValidationError("Password must contain at least one uppercase letter.")
-    if not re.search(r'\d', password):
-        raise ValidationError("Password must contain at least one digit.")
-    if not re.search(r'[!@#$%^&*(),.?":{}|<>]', password):
-        raise ValidationError("Password must contain at least one special character.")
-
+        
 class ResetPasswordForm(forms.Form):
-    new_password = forms.CharField(
-        label="New Password",
-        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Enter new password'}),
-        required=True,
-    )
-    confirm_password = forms.CharField(
-        label="Confirm Password",
-        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Confirm new password'}),
-        required=True,
-    )
-
-    def clean_new_password(self):
-        password = self.cleaned_data.get('new_password')
-        validate_password_strength(password)  # Validate the strength here
-        return password
+    new_password = forms.CharField(label='New Password', min_length=8)
+    confirm_password = forms.CharField(label='Confirm Password', min_length=8)
 
     def clean(self):
         cleaned_data = super().clean()
-        new_password = cleaned_data.get('new_password')
-        confirm_password = cleaned_data.get('confirm_password')
+        new_password = cleaned_data.get("new_password")
+        confirm_password = cleaned_data.get("confirm_password")
 
         if new_password and confirm_password and new_password != confirm_password:
             raise forms.ValidationError("Passwords do not match.")
+
