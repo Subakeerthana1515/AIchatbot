@@ -7,9 +7,9 @@ import dj_database_url
 # 1. BASE_DIR: Confirm it's your project root (e.g., D:\django\myapp)
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-## 2. Load the .env file from correct path
-env_path = os.path.join(BASE_DIR, 'techjays', 'chatbot', '.env')
+env_path = os.path.join(BASE_DIR, '.env')
 load_dotenv(dotenv_path=env_path)
+
 
 SECRET_KEY = os.getenv('SECRET_KEY')
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     'techjays',
     'techjays.chatbot',
     'corsheaders',
+    'django.contrib.sites',
 ]
 
 MIDDLEWARE = [
@@ -41,6 +42,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.cache.FetchFromCacheMiddleware', 
+    'techjays.middleware.restrict_login.RestrictLoginAccessMiddleware',
+
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True

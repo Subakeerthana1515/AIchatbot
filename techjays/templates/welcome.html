@@ -4,215 +4,284 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>TechJays AI Chat | Intelligent Conversational Platform</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>TechJays AI Chat | Welcome</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+
     <style>
-        :root {
-            --primary: #2c3e50;
-            --secondary: #3498db;
-            --accent: #e74c3c;
-            --light: #ecf0f1;
-            --dark: #2c3e50;
-        }
-        
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
-            padding: 0;
-            background-color: #f9f9f9;
-            color: var(--dark);
-            line-height: 1.6;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
-        
-        header {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
-            padding: 2rem 0;
-            text-align: center;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            scroll-behavior: smooth;
         }
-        
-        .logo {
-            width: 120px;
+
+        /* Fixed logo centered at top */
+        .logo-top-center {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 150px;
+            height: auto;
+            opacity: 0.9;
+            filter: brightness(150%) ;
+            z-index: 1000;
+        }
+
+        /* Top welcome section */
+        .top-section {
+            position: relative;
+            width: 100%;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 0 1rem;
+            box-sizing: border-box;
+            overflow: hidden;
+            text-align: center;
+            z-index: 1;
+        }
+
+        /* Background blobs inside top section */
+        .top-blobs {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .blob {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            filter: blur(80px);
+            animation: float 18s infinite;
+            mix-blend-mode: overlay;
+        }
+
+        .blob:nth-child(1) {
+            width: 400px;
+            height: 400px;
+            top: 10%;
+            left: 15%;
+            background:rgb(234, 197, 209);
+        }
+
+        .blob:nth-child(2) {
+            width: 300px;
+            height: 300px;
+            bottom: 15%;
+            right: 20%;
+            background: #b5fffc;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-30px) rotate(180deg); }
+        }
+
+        .hero-card {
+            position: relative;
+            max-width: 600px;
+            width: 90%;
+            padding: 3rem;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.3), 0 0 40px rgba(255, 255, 255, 0.1);
+            animation: fadeInUp 1s ease forwards, floatCard 10s infinite linear;
+            text-align: center;
+            z-index: 1;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes floatCard {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .hero-card h1 {
+            font-size: 2.5rem;
             margin-bottom: 1rem;
         }
-        
-        h1 {
-            font-size: 2.5rem;
-            margin: 0;
-            font-weight: 700;
+
+        .hero-card p {
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+            color: #f8f8f8;
         }
-        
-        .tagline {
-            font-size: 1.2rem;
-            opacity: 0.9;
-            margin-top: 0.5rem;
-        }
-        
-        .main-content {
-            padding: 3rem 0;
-            text-align: center;
-        }
-        
-        .cta-section {
-            background-color: white;
-            border-radius: 8px;
-            padding: 2rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-            max-width: 600px;
-            margin: 0 auto;
-        }
-        
-        .cta-buttons {
+
+        .buttons {
             display: flex;
-            justify-content: center;
             gap: 1rem;
-            margin-top: 2rem;
+            justify-content: center;
+            flex-wrap: wrap;
         }
-        
+
         .btn {
-            display: inline-block;
-            padding: 0.8rem 1.8rem;
-            border-radius: 4px;
+            padding: 0.75rem 1.5rem;
             font-weight: 600;
             text-decoration: none;
-            transition: all 0.3s ease;
-        }
-        
-        .btn-primary {
-            background-color: var(--secondary);
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            background-color: #2980b9;
-            transform: translateY(-2px);
-        }
-        
-        .btn-outline {
-            border: 2px solid var(--secondary);
-            color: var(--secondary);
-        }
-        
-        .btn-outline:hover {
-            background-color: var(--secondary);
-            color: white;
-            transform: translateY(-2px);
-        }
-        
-        .features {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-            margin-top: 3rem;
-        }
-        
-        .feature-card {
+            border-radius: 10px;
             background: white;
-            padding: 1.5rem;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-            transition: transform 0.3s ease;
+            color: #764ba2;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
         }
-        
-        .feature-card:hover {
-            transform: translateY(-5px);
+
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 18px rgba(255, 255, 255, 0.4);
         }
-        
-        .feature-icon {
-            font-size: 2rem;
-            color: var(--secondary);
-            margin-bottom: 1rem;
-        }
-        
-        footer {
-            background-color: var(--dark);
+
+        /* New intro text section */
+        .intro-text {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 20vh;   /* adjust this height as you want to control vertical space */
+    max-width: 700px;
+    margin: 0 auto 4rem auto;
+    color: white;
+    font-size: 1.2rem;
+    line-height: 1.6;
+    padding: 0 1rem;
+    text-align: center;
+}
+
+        /* Features Section */
+        .features-section {
+            background: linear-gradient(135deg, #764ba2, #667eea);
+            width: 100%;
+            padding: 3rem 1rem 5rem 1rem;
+            box-sizing: border-box;
             color: white;
-            text-align: center;
-            padding: 1.5rem 0;
-            margin-top: 3rem;
-        }
-        
-        .footer-links {
             display: flex;
             justify-content: center;
-            gap: 1.5rem;
-            margin-top: 1rem;
         }
-        
-        .footer-links a {
-            color: var(--light);
-            text-decoration: none;
-            transition: color 0.3s ease;
+
+        .features {
+            max-width: 900px;
+            width: 100%;
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+            justify-content: center;
         }
-        
-        .footer-links a:hover {
-            color: var(--secondary);
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 1.5rem 1.25rem;
+            flex: 1 1 250px;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+            text-align: center;
+            transition: background 0.3s ease;
+        }
+
+        .feature-card:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-card h3 {
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-card p {
+            font-size: 1rem;
+            line-height: 1.4;
+        }
+
+        @media (max-width: 600px) {
+            .hero-card h1 { font-size: 2rem; }
+            .hero-card p { font-size: 1rem; }
+            .btn { width: 100%; text-align: center; }
+            .intro-text { font-size: 1.1rem; margin: 2rem 1rem 3rem 1rem; }
+            .features { flex-direction: column; gap: 1.5rem; }
+            .feature-card { flex: none; width: 100%; }
         }
     </style>
 </head>
 <body>
-    <header>
-        <div class="container">
-            <img src="{% static 'techjays/images/techjays_logo.png' %}" alt="TechJays Logo" class="logo" />
-            <h1>TechJays AI Chat Platform</h1>
-            <p class="tagline">Empowering conversations with cutting-edge artificial intelligence</p>
+
+    <!-- Fixed centered logo at top -->
+    <img src="{% static 'images/techjays_logo.png' %}" alt="TechJays Logo" class="logo-top-center" />
+
+    <!-- Top Welcome Section -->
+    <section class="top-section" aria-label="Meet AvoraQ">
+        <!-- background blobs -->
+        <div class="top-blobs">
+            <div class="blob"></div>
+            <div class="blob"></div>
         </div>
-    </header>
-    
-    <div class="main-content">
-        <div class="container">
-            <div class="cta-section">
-                <h2>Experience Intelligent Chat</h2>
-                <p>
-                    Join our AI-powered conversational platform to explore the future of human-computer interaction.
-                    Register now to get started or login to continue your journey.
-                </p>
-                
-                <div class="cta-buttons">
-                    <a href="{% url 'techjays:register' %}" class="btn btn-primary">Register Now</a>
-                    <a href="{% url 'techjays:login' %}" class="btn btn-outline">Login</a>
-                </div>
-            </div>
-            
-            <div class="features">
-                <div class="feature-card">
-                    <div class="feature-icon">🤖</div>
-                    <h3>Advanced AI</h3>
-                    <p>Powered by state-of-the-art natural language processing models for human-like conversations.</p>
-                </div>
-                
-                <div class="feature-card">
-                    <div class="feature-icon">🔒</div>
-                    <h3>Secure Platform</h3>
-                    <p>Enterprise-grade security protocols to ensure your data privacy and protection.</p>
-                </div>
-                
-                <div class="feature-card">
-                    <div class="feature-icon">🚀</div>
-                    <h3>Lightning Fast</h3>
-                    <p>Optimized for performance with response times under 500ms for seamless interactions.</p>
-                </div>
+
+        <div class="hero-card" role="main">
+            <h1>Meet AvoraQ</h1>
+            <p>Your AI assistant to chat and explore your documents easily</p>
+            <div class="buttons">
+                <a href="{% url 'techjays:register' %}" class="btn" role="button">Register</a>
+                <a href="{% url 'techjays:login' %}" class="btn" role="button">Login</a>
             </div>
         </div>
-    </div>
-    
-    <footer>
-        <div class="container">
-            <p>© 2023 TechJays. All rights reserved.</p>
-            <div class="footer-links">
-                <a href="#">Privacy Policy</a>
-                <a href="#">Terms of Service</a>
-                <a href="#">Contact Us</a>
-                <a href="#">About TechJays</a>
+    </section>
+
+    <!-- Centered Intro Text -->
+    <section class="intro-text" aria-label="Introduction to AvoraQ">
+        <h2>💡What’s AvoraQ Got for You?</h2>
+        <p>Engage in lifelike conversations powered by next-gen AI. Ask anything, upload documents, and watch AvoraQ turn content into clarity — summaries, answers, and insights at your fingertips.
+Your intelligent all-in-one assistant is here — sharper, quicker, and brilliantly intuitive.
+
+
+        </p>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section" aria-label="Features of AvoraQ">
+        <div class="features">
+            <div class="feature-card">
+                <div class="feature-icon" aria-hidden="true">🤖</div>
+                <h3>Advanced AI</h3>
+                <p>Powered by state-of-the-art natural language processing models for human-like conversations.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon" aria-hidden="true">🔒</div>
+                <h3>Secure Platform</h3>
+                <p>Enterprise-grade security protocols to ensure your data privacy and protection.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon" aria-hidden="true">📄</div>
+                <h3>Document Upload</h3>
+                <p>Upload files and get instant AI-generated answers and summaries based on your documents.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon" aria-hidden="true">⚡</div>
+                <h3>Fast & Responsive</h3>
+                <p>Optimized performance for quick response times and smooth user experience.</p>
             </div>
         </div>
-    </footer>
+    </section>
+
 </body>
 </html>

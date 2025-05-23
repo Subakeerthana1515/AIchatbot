@@ -11,12 +11,15 @@ from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from .models import ChatHistory, ChatMessage
 import PyPDF2
-
+from django.views.decorators.cache import never_cache
+from django.views.decorators.cache import never_cache, cache_control
 # Load API Key from environment variable
 API_KEY = os.getenv("GEMINI_API_KEY")
 GEMINI_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={API_KEY}"
 
 @login_required
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+@never_cache
 def chatbot_view(request):
     return render(request, 'chat.html')
 
@@ -51,6 +54,7 @@ def get_sessions(request):
 
 @login_required
 @csrf_exempt
+
 def chat(request):
     if request.method != 'POST':
         return HttpResponseBadRequest("Only POST allowed")

@@ -8,9 +8,9 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('techjays/', include('techjays.urls')),
     path('', auth_views.welcome, name='welcome'),
-
+    
 
 ]
-
 if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATICFILES_DIRS[0])
+
