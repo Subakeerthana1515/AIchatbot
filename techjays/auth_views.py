@@ -20,9 +20,6 @@ from django.utils.http import urlsafe_base64_decode
 from .forms import ResetPasswordForm
 from django import forms
 
-
-
-
 def welcome(request):
     request.session['came_from_welcome'] = True
     return render(request, 'welcome.html')
@@ -30,19 +27,22 @@ def welcome(request):
 
 def register(request):
     if request.method == 'POST':
-        form = RegisterForm(request.POST)
+        form = CustomRegisterForm(request.POST)
         if form.is_valid():
             user = User.objects.create_user(
-                username=form.cleaned_data['username'],
+                username=form.cleaned_data['full_name'],
                 email=form.cleaned_data['email'],
-                password=form.cleaned_data['password']
+                password=form.cleaned_data['password1']
             )
-            login(request, user)
-            request.session['allow_login_page'] = True
-            return redirect('techjays:chatbot')
+            # Remove auto-login
+            messages.success(request, "Registration successful! Please login to continue.")
+            return redirect('techjays:login')  # Redirect to login page
+        else:
+            messages.error(request, "Please fix the errors below.")
     else:
-        form = RegisterForm()
+        form = CustomRegisterForm()
     return render(request, 'register.html', {'form': form})
+
 
 
 
@@ -78,6 +78,7 @@ class CustomRegisterForm(forms.ModelForm):
 
         if password1 and password2 and password1 != password2:
             self.add_error('password2', "Passwords do not match.")
+        return cleaned_data  # <--- Important!
 
 
 
@@ -86,16 +87,16 @@ class CustomRegisterForm(forms.ModelForm):
 @never_cache
 def login_view(request):
     if request.method == 'POST':
-        username = request.POST.get('username')
+        full_name = request.POST.get('full_name')
         password = request.POST.get('password')
-        user = authenticate(request, username=username, password=password)
+        user = authenticate(request, full_name=full_name, password=password)
 
         if user:
             login(request, user)
             request.session.pop('came_from_welcome', None)
             return redirect('techjays:chatbot')
         else:
-            messages.error(request, 'Invalid username or password')
+            messages.error(request, 'Invalid full_name or password')
 
     return render(request, 'login.html')
 
